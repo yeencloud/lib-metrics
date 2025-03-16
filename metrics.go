@@ -1,9 +1,9 @@
 package metrics
 
 import (
-	MetricsInflux "github.com/yeencloud/lib-metrics/database/influxdb"
-	MetricsDomain "github.com/yeencloud/lib-metrics/domain"
-	MetricsConfig "github.com/yeencloud/lib-metrics/domain/config"
+	"github.com/yeencloud/lib-metrics/database/influx"
+	"github.com/yeencloud/lib-metrics/domain"
+	"github.com/yeencloud/lib-metrics/domain/config"
 	"github.com/yeencloud/lib-metrics/errors"
 	"github.com/yeencloud/lib-metrics/ports"
 	"github.com/yeencloud/lib-shared/config"
