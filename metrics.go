@@ -1,57 +1,80 @@
 package metrics
 
 import (
-	"github.com/yeencloud/lib-shared"
-	"github.com/yeencloud/lib-shared/log"
+	MetricsInflux "github.com/yeencloud/lib-metrics/database/influxdb"
+	MetricsDomain "github.com/yeencloud/lib-metrics/domain"
+	MetricsConfig "github.com/yeencloud/lib-metrics/domain/config"
+	"github.com/yeencloud/lib-metrics/errors"
+	"github.com/yeencloud/lib-metrics/ports"
+	"github.com/yeencloud/lib-shared/config"
 )
 
-type MetricPoint struct {
-	Name string
-	Tags map[string]string
+var localMetrics *Metrics
+
+type Metrics struct {
+	serviceName string
+	hostname    string
+
+	provider ports.MetricsInterface
 }
 
-type MetricValues map[string]any
+func NewMetrics(serviceName string, hostname string) (*Metrics, error) {
+	cfg, err := config.FetchConfig[MetricsConfig.Config]()
+	if err != nil {
+		return nil, err
+	}
 
-type MetricsInterface interface {
-	LogPoint(point MetricPoint, value MetricValues)
+	var provider ports.MetricsInterface
+	switch cfg.Provider {
+	case "influxdb":
+		influx, err := MetricsInflux.NewInflux()
+		if err != nil {
+			return nil, err
+		}
+		provider = influx
+	default:
+		return nil, &errors.UnknownProviderError{Provider: cfg.Provider}
+	}
 
-	Connect() error
+	metrics := &Metrics{
+		serviceName: serviceName,
+		hostname:    hostname,
+		provider:    provider,
+	}
+
+	localMetrics = metrics
+
+	return metrics, nil
 }
 
-func MetricsFromContext(ctx *shared.Context) (pointTags map[string]string, points map[string]MetricValues) {
-	pointTags = map[string]string{}
-	points = map[string]MetricValues{}
-
-	ctx.Range(func(key, value interface{}) bool {
-		entryKey, ok := key.(log.Path)
-
-		if !ok {
-			return true
-		}
-
-		root := entryKey.Root().String()
-		metricKey := entryKey.MetricKey()
-
-		if entryKey.IsMetricTag {
-			pointTags[metricKey], ok = value.(string)
-			return ok
-		}
-
-		if _, ok := points[entryKey.Root().String()]; !ok {
-			points[root] = map[string]any{}
-		}
-
-		points[root][metricKey] = value
-
-		return true
-	})
-
-	return
+func (m *Metrics) Connect() error {
+	return m.provider.Connect()
 }
 
-func LogsFromContext(ctx *shared.Context) (pointTags map[string]string, points []map[string]interface{}) {
-	pointTags, _ = MetricsFromContext(ctx)
-	points = ctx.Logs()
+func Connect() error {
+	if localMetrics == nil {
+		return &errors.MetricsNotInitializedError{}
+	}
 
-	return
+	return localMetrics.Connect()
+}
+
+func (m *Metrics) LogPoint(point MetricsDomain.Point, values MetricsDomain.Values) {
+	if point.Tags == nil {
+		point.Tags = make(map[string]string)
+	}
+
+	point.Tags["service"] = m.serviceName
+	point.Tags["hostname"] = m.hostname
+
+	m.provider.LogPoint(point, values)
+}
+
+func LogPoint(point MetricsDomain.Point, values MetricsDomain.Values) error {
+	if localMetrics == nil {
+		return &errors.MetricsNotInitializedError{}
+	}
+
+	localMetrics.LogPoint(point, values)
+	return nil
 }
