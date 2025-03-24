@@ -1,6 +1,8 @@
 package metrics
 
 import (
+	log "github.com/sirupsen/logrus"
+
 	"github.com/yeencloud/lib-metrics/database/influx"
 	"github.com/yeencloud/lib-metrics/domain"
 	"github.com/yeencloud/lib-metrics/domain/config"
@@ -70,11 +72,10 @@ func (m *Metrics) LogPoint(point MetricsDomain.Point, values MetricsDomain.Value
 	m.provider.LogPoint(point, values)
 }
 
-func LogPoint(point MetricsDomain.Point, values MetricsDomain.Values) error {
+func LogPoint(point MetricsDomain.Point, values MetricsDomain.Values) {
 	if localMetrics == nil {
-		return &errors.MetricsNotInitializedError{}
+		log.WithError(&errors.MetricsNotInitializedError{}).Error("failed to send point")
 	}
 
 	localMetrics.LogPoint(point, values)
-	return nil
 }
