@@ -1,10 +1,7 @@
 package metrics
 
 import (
-	log "github.com/sirupsen/logrus"
-
 	"github.com/yeencloud/lib-metrics/database/influx"
-	"github.com/yeencloud/lib-metrics/domain"
 	"github.com/yeencloud/lib-metrics/domain/config"
 	"github.com/yeencloud/lib-metrics/errors"
 	"github.com/yeencloud/lib-metrics/ports"
@@ -20,6 +17,10 @@ type Metrics struct {
 	provider ports.MetricsInterface
 }
 
+func (m *Metrics) Connect() error {
+	return m.provider.Connect()
+}
+ 
 func NewMetrics(serviceName string, hostname string) (*Metrics, error) {
 	cfg, err := config.FetchConfig[MetricsConfig.Config]()
 	if err != nil {
@@ -47,35 +48,4 @@ func NewMetrics(serviceName string, hostname string) (*Metrics, error) {
 	localMetrics = metrics
 
 	return metrics, nil
-}
-
-func (m *Metrics) Connect() error {
-	return m.provider.Connect()
-}
-
-func Connect() error {
-	if localMetrics == nil {
-		return &errors.MetricsNotInitializedError{}
-	}
-
-	return localMetrics.Connect()
-}
-
-func (m *Metrics) LogPoint(point MetricsDomain.Point, values MetricsDomain.Values) {
-	if point.Tags == nil {
-		point.Tags = make(map[string]string)
-	}
-
-	point.Tags["service"] = m.serviceName
-	point.Tags["hostname"] = m.hostname
-
-	m.provider.LogPoint(point, values)
-}
-
-func LogPoint(point MetricsDomain.Point, values MetricsDomain.Values) {
-	if localMetrics == nil {
-		log.WithError(&errors.MetricsNotInitializedError{}).Error("failed to send point")
-	}
-
-	localMetrics.LogPoint(point, values)
 }

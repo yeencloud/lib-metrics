@@ -5,18 +5,35 @@ import (
 
 	influxdb2 "github.com/influxdata/influxdb-client-go/v2"
 	"github.com/influxdata/influxdb-client-go/v2/api"
-
+	MetricsDomain "github.com/yeencloud/lib-metrics/domain"
 	"github.com/yeencloud/lib-metrics/domain/config"
 	"github.com/yeencloud/lib-metrics/ports"
 	"github.com/yeencloud/lib-shared/config"
 )
 
 type Influx struct {
-	cfg *MetricsConfig.InfluxConfig
-
-	client influxdb2.Client
-
+	cfg      *MetricsConfig.InfluxConfig
+	client   influxdb2.Client
 	writeAPI api.WriteAPIBlocking
+}
+
+func (i *Influx) WritePoint(ctx context.Context, metricHeader MetricsDomain.Point, metricValues MetricsDomain.Values) {
+	writer := i.writeAPI
+
+	p := influxdb2.NewPointWithMeasurement(metricHeader.Name)
+
+	for k, v := range metricHeader.Tags {
+		p = p.AddTag(k, v)
+	}
+
+	for k, v := range metricValues {
+		p = p.AddField(k, v)
+	}
+
+	err := writer.WritePoint(ctx, p)
+	if err != nil {
+		println(err.Error())
+	}
 }
 
 func (i *Influx) Connect() error {

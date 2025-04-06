@@ -27,3 +27,5 @@ func (p *Point) SetTag(value namespace.NamespaceValue) {
 
 	p.Tags[value.Namespace.MetricKey()] = value.String()
 }
+
+type Values map[string]any

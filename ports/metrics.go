@@ -1,11 +1,12 @@
 package ports
 
 import (
+	"context"
+
 	MetricsDomain "github.com/yeencloud/lib-metrics/domain"
 )
 
 type MetricsInterface interface {
-	LogPoint(point MetricsDomain.Point, value MetricsDomain.Values)
-
+	WritePoint(ctx context.Context, metricHeader MetricsDomain.Point, metricValues MetricsDomain.Values)
 	Connect() error
 }
