@@ -20,7 +20,7 @@ type Metrics struct {
 func (m *Metrics) Connect() error {
 	return m.provider.Connect()
 }
- 
+
 func NewMetrics(serviceName string, hostname string) (*Metrics, error) {
 	cfg, err := config.FetchConfig[MetricsConfig.Config]()
 	if err != nil {

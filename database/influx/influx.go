@@ -32,7 +32,7 @@ func (i *Influx) WritePoint(ctx context.Context, metricHeader MetricsDomain.Poin
 
 	err := writer.WritePoint(ctx, p)
 	if err != nil {
-		println(err.Error())
+		println(err.Error()) //nolint:forbidigo
 	}
 }
 

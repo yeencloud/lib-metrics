@@ -74,7 +74,7 @@ func (m *Metrics) WritePoint(ctx context.Context, metricType string, point any) 
 	}
 
 	if ctx == nil {
-		ctx = context.Background()
+		return nil
 	}
 
 	header := localMetrics.getMetricPointFromCtx(ctx)
