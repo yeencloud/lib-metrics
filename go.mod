@@ -1,14 +1,12 @@
 module github.com/yeencloud/lib-metrics
 
-go 1.23.0
-
-toolchain go1.24.1
+go 1.25
 
 require (
 	github.com/fatih/structs v1.1.0
 	github.com/influxdata/influxdb-client-go/v2 v2.14.0
 	github.com/sirupsen/logrus v1.9.3
-	github.com/yeencloud/lib-shared v0.2.9
+	github.com/yeencloud/lib-shared v0.2.11
 )
 
 require (

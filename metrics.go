@@ -1,6 +1,7 @@
 package metrics
 
 import (
+	"github.com/yeencloud/lib-metrics/database/disabled"
 	"github.com/yeencloud/lib-metrics/database/influx"
 	"github.com/yeencloud/lib-metrics/domain/config"
 	"github.com/yeencloud/lib-metrics/errors"
@@ -35,6 +36,8 @@ func NewMetrics(serviceName string, hostname string) (*Metrics, error) {
 			return nil, err
 		}
 		provider = influx
+	case "none":
+		provider = &disabled.DisabledMetrics{}
 	default:
 		return nil, &errors.UnknownProviderError{Provider: cfg.Provider}
 	}
